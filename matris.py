@@ -4,26 +4,14 @@ from pygame import Rect, Surface
 import random
 import os
 import kezmenu
-
 from tetrominoes import list_of_tetrominoes
 from tetrominoes import rotate
-
 from scores import load_score, write_score
-
 class GameOver(Exception):
     """Exception used for its control flow properties"""
-
 def get_sound(filename):
     return pygame.mixer.Sound(os.path.join(os.path.dirname(__file__), "resources", filename))
-
-BGCOLOR = (15, 15, 20)
-BORDERCOLOR = (140, 140, 140)
-
-BLOCKSIZE = 30
-BORDERWIDTH = 10
-
-MATRIS_OFFSET = 20
-
+BGCOLOR,BORDERCOLOR,BLOCKSIZE,BORDERWIDTH,MATRIS_OFFSET = (15, 15, 20),(140, 140, 140),30,10,20
 MATRIX_WIDTH = 10
 MATRIX_HEIGHT = 22
 
@@ -46,44 +34,27 @@ class Matris(object):
         for y in range(MATRIX_HEIGHT):
             for x in range(MATRIX_WIDTH):
                 self.matrix[(y,x)] = None
-        """
-        `self.matrix` is the current state of the tetris board, that is, it records which squares are
-        currently occupied. It does not include the falling tetromino. The information relating to the
-        falling tetromino is managed by `self.set_tetrominoes` instead. When the falling tetromino "dies",
-        it will be placed in `self.matrix`.
-        """
 
         self.next_tetromino = random.choice(list_of_tetrominoes)
         self.set_tetrominoes()
         self.tetromino_rotation = 0
         self.downwards_timer = 0
         self.base_downwards_speed = 0.4 # Move down every 400 ms
-
         self.movement_keys = {'left': 0, 'right': 0}
         self.movement_keys_speed = 0.05
         self.movement_keys_timer = (-self.movement_keys_speed)*2
-
         self.level = 1
         self.score = 0
         self.lines = 0
-
         self.combo = 1 # Combo will increase when you clear lines with several tetrominos in a row
-        
         self.paused = False
-
         self.highscore = load_score()
         self.played_highscorebeaten_sound = False
-
         self.levelup_sound  = get_sound("levelup.wav")
         self.gameover_sound = get_sound("gameover.wav")
         self.linescleared_sound = get_sound("linecleared.wav")
         self.highscorebeaten_sound = get_sound("highscorebeaten.wav")
-
-
     def set_tetrominoes(self):
-        """
-        Sets information for the current and next tetrominos
-        """
         self.current_tetromino = self.next_tetromino
         self.next_tetromino = random.choice(list_of_tetrominoes)
         self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
@@ -92,11 +63,7 @@ class Matris(object):
         self.tetromino_block = self.block(self.current_tetromino.color)
         self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
 
-    
     def hard_drop(self):
-        """
-        Instantly places tetrominos in the cells below
-        """
         amount = 0
         while self.request_movement('down'):
             amount += 1
@@ -106,9 +73,6 @@ class Matris(object):
 
 
     def update(self, timepassed):
-        """
-        Main game loop
-        """
         self.needs_redraw = False
         
         pressed = lambda key: event.type == pygame.KEYDOWN and event.key == key
@@ -173,9 +137,6 @@ class Matris(object):
         return self.needs_redraw
 
     def draw_surface(self):
-        """
-        Draws the image of the current tetromino
-        """
         with_tetromino = self.blend(matrix=self.place_shadow())
 
         for y in range(MATRIX_HEIGHT):
@@ -192,12 +153,6 @@ class Matris(object):
                     self.surface.blit(with_tetromino[(y,x)][1], block_location)
                     
     def gameover(self, full_exit=False):
-        """
-        Gameover occurs when a new tetromino does not fit after the old one has died, either
-        after a "natural" drop or a hard drop by the player. That is why `self.lock_tetromino`
-        is responsible for checking if it's game over.
-        """
-
         write_score(self.score)
         
         if full_exit:
@@ -206,9 +161,6 @@ class Matris(object):
             raise GameOver("Sucker!")
 
     def place_shadow(self):
-        """
-        Draws shadow of tetromino so player can see where it will be placed
-        """
         posY, posX = self.tetromino_position
         while self.blend(position=(posY, posX)):
             posY += 1
@@ -218,9 +170,6 @@ class Matris(object):
         return self.blend(position=position, shadow=True)
 
     def fits_in_matrix(self, shape, position):
-        """
-        Checks if tetromino fits on the board
-        """
         posY, posX = position
         for x in range(posX, posX+len(shape)):
             for y in range(posY, posY+len(shape)):
@@ -231,10 +180,6 @@ class Matris(object):
                     
 
     def request_rotation(self):
-        """
-        Checks if tetromino can rotate
-        Returns the tetromino's rotation position if possible
-        """
         rotation = (self.tetromino_rotation + 1) % 4
         shape = self.rotated(rotation)
 
@@ -257,9 +202,6 @@ class Matris(object):
             return False
             
     def request_movement(self, direction):
-        """
-        Checks if teteromino can move in the given direction and returns its new position if movement is possible
-        """
         posY, posX = self.tetromino_position
         if direction == 'left' and self.blend(position=(posY, posX-1)):
             self.tetromino_position = (posY, posX-1)
@@ -281,24 +223,18 @@ class Matris(object):
             return False
 
     def rotated(self, rotation=None):
-        """
-        Rotates tetromino
-        """
         if rotation is None:
             rotation = self.tetromino_rotation
         return rotate(self.current_tetromino.shape, rotation)
 
     def block(self, color, shadow=False):
-        """
-        Sets visual information for tetromino
-        """
-        colors = {'blue':   (105, 105, 255),
-                  'yellow': (225, 242, 41),
-                  'pink':   (242, 41, 195),
-                  'green':  (22, 181, 64),
-                  'red':    (204, 22, 22),
-                  'orange': (245, 144, 12),
-                  'cyan':   (10, 255, 226)}
+        colors = {'blue':   (128,128,128),
+                  'yellow': (255,0,0),
+                  'pink':   (128,128,128),
+                  'green':  (255,0,0),
+                  'red':    (128,128,128),
+                  'orange': (255,0,0),
+                  'cyan':   (128,128,128)}
 
 
         if shadow:
@@ -324,10 +260,6 @@ class Matris(object):
         return border
 
     def lock_tetromino(self):
-        """
-        This method is called whenever the falling tetromino "dies". `self.matrix` is updated,
-        the lines are counted and cleared, and a new tetromino is chosen.
-        """
         self.matrix = self.blend()
 
         lines_cleared = self.remove_lines()
@@ -358,9 +290,6 @@ class Matris(object):
         self.needs_redraw = True
 
     def remove_lines(self):
-        """
-        Removes lines from the board
-        """
         lines = []
         for y in range(MATRIX_HEIGHT):
             #Checks if row if full, for each row
@@ -382,13 +311,6 @@ class Matris(object):
         return len(lines)
 
     def blend(self, shape=None, position=None, matrix=None, shadow=False):
-        """
-        Does `shape` at `position` fit in `matrix`? If so, return a new copy of `matrix` where all
-        the squares of `shape` have been placed in `matrix`. Otherwise, return False.
-        
-        This method is often used simply as a test, for example to see if an action by the player is valid.
-        It is also used in `self.draw_surface` to paint the falling tetromino and its shadow on the screen.
-        """
         if shape is None:
             shape = self.rotated()
         if position is None:
@@ -410,9 +332,6 @@ class Matris(object):
         return copy
 
     def construct_surface_of_next_tetromino(self):
-        """
-        Draws the image of the next tetromino
-        """
         shape = self.next_tetromino.shape
         surf = Surface((len(shape)*BLOCKSIZE, len(shape)*BLOCKSIZE), pygame.SRCALPHA, 32)
 
@@ -424,10 +343,6 @@ class Matris(object):
 
 class Game(object):
     def main(self, screen):
-        """
-        Main loop for game
-        Redraws scores and next tetromino each time the loop is passed through
-        """
         clock = pygame.time.Clock()
 
         self.matris = Matris()
@@ -450,9 +365,6 @@ class Game(object):
       
 
     def redraw(self):
-        """
-        Redraws the information panel and next termoino panel
-        """
         if not self.matris.paused:
             self.blit_next_tetromino(self.matris.surface_of_next_tetromino)
             self.blit_info()
@@ -463,9 +375,6 @@ class Game(object):
 
 
     def blit_info(self):
-        """
-        Draws information panel
-        """
         textcolor = (255, 255, 255)
         font = pygame.font.Font(None, 30)
         width = (WIDTH-(MATRIS_OFFSET+BLOCKSIZE*MATRIX_WIDTH+BORDERWIDTH*2)) - MATRIS_OFFSET*2
@@ -483,9 +392,8 @@ class Game(object):
         #Resizes side panel to allow for all information to be display there.
         scoresurf = renderpair("Score", self.matris.score)
         levelsurf = renderpair("Level", self.matris.level)
-        linessurf = renderpair("Lines", self.matris.lines)
-        combosurf = renderpair("Combo", "x{}".format(self.matris.combo))
-
+        linessurf = renderpair("Edited for TechMag", "")
+        combosurf = renderpair("By Braxton Arentz","")
         height = 20 + (levelsurf.get_rect().height + 
                        scoresurf.get_rect().height +
                        linessurf.get_rect().height + 
@@ -506,9 +414,6 @@ class Game(object):
 
 
     def blit_next_tetromino(self, tetromino_surf):
-        """
-        Draws the next tetromino in a box to the side of the board
-        """
         area = Surface((BLOCKSIZE*5, BLOCKSIZE*5))
         area.fill(BORDERCOLOR)
         area.fill(BGCOLOR, Rect(BORDERWIDTH, BORDERWIDTH, BLOCKSIZE*5-BORDERWIDTH*2, BLOCKSIZE*5-BORDERWIDTH*2))
@@ -523,9 +428,6 @@ class Game(object):
         screen.blit(area, area.get_rect(top=MATRIS_OFFSET, centerx=TRICKY_CENTERX))
 
 class Menu(object):
-    """
-    Creates main menu
-    """
     running = True
     def main(self, screen):
         clock = pygame.time.Clock()
@@ -563,18 +465,12 @@ class Menu(object):
             pygame.display.flip()
 
     def construct_highscoresurf(self):
-        """
-        Loads high score from file
-        """
         font = pygame.font.Font(None, 50)
         highscore = load_score()
         text = "Highscore: {}".format(highscore)
         return font.render(text, True, (255,255,255))
 
 def construct_nightmare(size):
-    """
-    Constructs background image
-    """
     surf = Surface(size)
 
     boxsize = 8
@@ -598,5 +494,5 @@ if __name__ == '__main__':
     pygame.init()
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("MaTris")
+    pygame.display.set_caption("TechMag Tetris")
     Menu().main(screen)

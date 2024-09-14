@@ -7,20 +7,12 @@
 # PyMike, from the Pygame community
 # See http://www.pygame.org/project/855/
 # ---------------------------------------------------------------
-
-import pygame
-import warnings
-
+import pygame,warnings
 from .kezmenu_effects import KezMenuEffectAble, VALID_EFFECTS
-
 __author__ = "Keul - lucafbb AT gmail.com"
 __version__ = "0.3.5"
-
 __description__ = "A simple and basical Pygame library for fast develop of menu interfaces"
-
 class deprecated(object):
-    """A decorator for deprecated functions"""
-    
     def __init__(self, msg):
         self._msg = msg
         self._printed = False
@@ -36,12 +28,7 @@ class deprecated(object):
         return func
 
 class KezMenu(KezMenuEffectAble):
-    """A simple but complete class to handle menu using Pygame"""
-
     def __init__(self, *options):
-        """Initialise the EzMenu! options should be a sequence of lists in the
-        format of [option_name, option_function]
-        """
         KezMenuEffectAble.__init__(self)
         self.options = [{'label': x[0], 'callable': x[1]} for x in options]
         self.x = 0
@@ -63,7 +50,6 @@ class KezMenu(KezMenuEffectAble):
             pass
 
     def _fixSize(self):
-        """Fix the menu size. Commonly called when the font is changed"""
         self.height = 0
         for o in self.options:
             text = o['label']
@@ -74,7 +60,6 @@ class KezMenu(KezMenuEffectAble):
             self.height+=font.get_height()
 
     def draw(self, surface):
-        """Blit the menu to a surface."""
         offset = 0
         i = 0
         ol, ot = self.screen_topleft_offset
@@ -107,11 +92,6 @@ class KezMenu(KezMenuEffectAble):
             i+=1
 
     def update(self, events, time_passed=None):
-        """Update the menu and get input for the menu.
-        @events: the pygame catched events
-        @time_passed: optional parameter, only used for animations. The time passed (in seconds) from the last
-                      update call (commonly obtained from a call on pygame.Clock.tick)
-        """
         for e in events:
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_DOWN:
@@ -137,7 +117,6 @@ class KezMenu(KezMenuEffectAble):
             self._updateEffects(time_passed)
 
     def _checkMousePositionForFocus(self):
-        """Check the mouse position to know if move focus on a option"""
         i = 0
         mouse_pos = pygame.mouse.get_pos()
         ml,mt = self.position
@@ -166,7 +145,6 @@ class KezMenu(KezMenuEffectAble):
     font = property(lambda self: self._font, _setFont, doc="""Font used by the menu""")
 
     def center_at(self, x, y):
-        """Center the menu at x,y"""
         self.x = x-(self.width/2)
         self.y = y-(self.height/2)
 
